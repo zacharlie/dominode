@@ -4,7 +4,6 @@ import shlex
 import subprocess
 import urllib3
 from configparser import ConfigParser
-from pathlib import Path
 from time import sleep
 from urllib3.exceptions import MaxRetryError
 
@@ -17,7 +16,6 @@ from sqlalchemy.exc import OperationalError
 logger = logging.getLogger(__name__)
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
 DB_SERVICE_NAME = 'dominode-db-dev'
 
 
@@ -44,28 +42,6 @@ def db_admin_credentials():
         'user': 'dominode_test',
         'password': 'dominode_test',
     }
-
-
-@pytest.fixture(scope='session')
-def db_service_file(
-        db_admin_credentials,
-        tmpdir_factory
-):
-
-    temp_dir = tmpdir_factory.mktemp('db_service_file')
-    config_path = temp_dir.join('pg_service')
-    config = ConfigParser()
-    config[DB_SERVICE_NAME] = {
-        'host': db_admin_credentials['host'],
-        'port': db_admin_credentials['port'],
-        'dbname': db_admin_credentials['db'],
-        'user': db_admin_credentials['user'],
-        'password': db_admin_credentials['password'],
-        'sslmode': 'disable'
-    }
-    with config_path.open('w') as fh:
-        config.write(fh)
-    return config_path.realpath()
 
 
 @pytest.fixture(scope='session')
@@ -97,13 +73,15 @@ def db_container(docker_client, db_admin_credentials):
 
 @pytest.fixture(scope='session')
 def db_connection(db_container, db_admin_credentials):
-    engine = sla.create_engine('postgresql://{user}:{password}@{host}:{port}/{db}'.format(
-        user=db_admin_credentials['user'],
-        password=db_admin_credentials['password'],
-        host=db_admin_credentials['host'],
-        port=db_admin_credentials['port'],
-        db=db_admin_credentials['db']
-    ))
+    engine = sla.create_engine(
+        'postgresql://{user}:{password}@{host}:{port}/{db}'.format(
+            user=db_admin_credentials['user'],
+            password=db_admin_credentials['password'],
+            host=db_admin_credentials['host'],
+            port=db_admin_credentials['port'],
+            db=db_admin_credentials['db']
+        )
+    )
     connected = False
     max_tries = 30
     current_try = 0
@@ -124,11 +102,13 @@ def db_connection(db_container, db_admin_credentials):
 
 
 @pytest.fixture(scope='session')
-def bootstrapped_db_connection(db_connection, db_service_file):
+def bootstrapped_db_connection(db_connection, db_admin_credentials):
     completed_process = subprocess.run(
         shlex.split(
-            f'dominode-admin db bootstrap {DB_SERVICE_NAME} '
-            f'--db-service-file={db_service_file}'
+            f'dominode-admin db bootstrap {db_admin_credentials["user"]} '
+            f'{db_admin_credentials["password"]} {db_admin_credentials["db"]} '
+            f'--db-host {db_admin_credentials["host"]} '
+            f'--db-port {db_admin_credentials["port"]}'
         ),
         capture_output=True
     )
@@ -144,15 +124,20 @@ def bootstrapped_db_connection(db_connection, db_service_file):
 def db_users(
         bootstrapped_db_connection,
         db_users_credentials,
-        db_service_file
+        db_admin_credentials
 ):
     for user, user_info in db_users_credentials.items():
         password, department, role = user_info
         completed_process = subprocess.run(
             shlex.split(
-                f'dominode-admin db add-department-user {DB_SERVICE_NAME} '
-                f'{user} {password} {department} --role={role} '
-                f'--db-service-file={db_service_file}'
+                f'dominode-admin db add-department-user '
+                f'{db_admin_credentials["user"]} '
+                f'{db_admin_credentials["password"]} '
+                f'{db_admin_credentials["db"]} '
+                f'{user} {password} {department} '
+                f'--role={role} '
+                f'--db-host={db_admin_credentials["host"]} '
+                f'--db-port={db_admin_credentials["port"]}'
             ),
             capture_output=True
         )
@@ -270,30 +255,19 @@ def bootstrapped_minio_server(
         minio_server_info,
         minio_client,  # here just to make sure server is already usable
         minio_users_credentials,
-        tmpdir_factory
 ):
-    temp_dir = tmpdir_factory.mktemp('minio_client')
-    config_path = temp_dir.join('config.json')
     server_alias = 'dominode-pytest'
-    config_path.write_text(
-        json.dumps({
-            'version': '9',
-            'hosts': {
-                server_alias: {
-                    'url': f'http://localhost:{minio_server_info["port"]}',
-                    'accessKey': minio_server_info['access_key'],
-                    'secretKey': minio_server_info['secret_key'],
-                    'api': 'S3v4',
-                    'lookup': 'auto',
-                }
-            }
-        }),
-        'utf-8'
+    command_kwargs = (
+        f'--alias {server_alias} '
+        f'--host localhost '
+        f'--port {minio_server_info["port"]} '
+        f'--protocol http '
     )
     completed_process = subprocess.run(
         shlex.split(
-            f'dominode-admin minio bootstrap {server_alias} '
-            f'--minio-client-config-dir={temp_dir}'
+            f'dominode-admin minio bootstrap {command_kwargs} '
+            f'{minio_server_info["access_key"]} '
+            f'{minio_server_info["secret_key"]}'
         ),
         capture_output=True
     )
@@ -308,9 +282,10 @@ def bootstrapped_minio_server(
         secret_key, department_name, role = user_info
         completed_process = subprocess.run(
             shlex.split(
-                f'dominode-admin minio add-department-user {server_alias} {access_key} '
-                f'{secret_key} {department_name} --role={role} '
-                f'--minio-client-config-dir={temp_dir}'
+                f'dominode-admin minio add-department-user {command_kwargs} '
+                f'--role {role} {access_key} {secret_key} {department_name} '
+                f'{minio_server_info["access_key"]} '
+                f'{minio_server_info["secret_key"]}'
             ),
             capture_output=True
         )
