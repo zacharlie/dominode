@@ -3,6 +3,18 @@
 # docker-compose up -d
 #
 # docker-compose run \
+#     --name test-bootstrap \
+#     --rm \
+#     bootstrapper \
+#     bootstrap \
+#         --db-host db \
+#         --minio-host minio \
+#         --minio-protocol http \
+#         postgres postgres myuser mypassword
+#
+# Alternatively, bootstrap individual components:
+#
+# docker-compose run \
 #     --name test-bootstrap-db \
 #     --rm \
 #     bootstrapper \

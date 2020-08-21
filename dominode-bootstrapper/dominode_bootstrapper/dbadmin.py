@@ -33,9 +33,9 @@ DEFAULT_DB_SERVICE_FILE = Path('~/.pg_service.conf').expanduser()
 
 @app.command()
 def bootstrap(
-        db_user_name: str,
-        db_user_password: str,
-        db_name: str,
+        db_username: str,
+        db_password: str,
+        db_name: typing.Optional[str] = None,
         db_host: str = 'localhost',
         db_port: int = 5432,
 ):
@@ -47,8 +47,8 @@ def bootstrap(
     """
 
     db_url = (
-        f'postgresql://{db_user_name}:{db_user_password}@{db_host}:{db_port}/'
-        f'{db_name}'
+        f'postgresql://{db_username}:{db_password}@{db_host}:{db_port}/'
+        f'{db_name or db_username}'
     )
     bootstrap_sql_path = APP_ROOT / 'sql/bootstrap-db.sql'
     with get_db_connection(db_url) as db_connection:
@@ -61,19 +61,19 @@ def bootstrap(
 
 @app.command()
 def add_department_user(
-        db_user_name: str,
-        db_user_password: str,
-        db_name: str,
         username: str,
         password: str,
         department: DepartmentName,
+        admin_username: str,
+        admin_password: str,
         role: typing.Optional[UserRole] = UserRole.REGULAR_DEPARTMENT_USER,
         db_host: str = 'localhost',
         db_port: int = 5432,
+        db_name: typing.Optional[str] = None,
 ):
     db_url = (
-        f'postgresql://{db_user_name}:{db_user_password}@{db_host}:{db_port}/'
-        f'{db_name}'
+        f'postgresql://{admin_username}:{admin_password}@{db_host}:{db_port}/'
+        f'{db_name or admin_username}'
     )
     sql_role = {
         UserRole.EDITOR: f'{department.value}_editor',
