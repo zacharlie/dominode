@@ -46,4 +46,4 @@ services:
       MINIO_SECRET_KEY: mypassword
 
   bootstrapper:
-    image: ricardogsilva/dominode-bootstrapper:0.1.0
+    image: kartoza/dominode_bootstrapper:0.1.0
