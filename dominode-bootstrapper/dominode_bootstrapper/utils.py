@@ -95,6 +95,14 @@ def _get_default_config():
     config['minio']['protocol'] = 'https'
     config['minio']['admin_access_key'] = 'admin'
     config['minio']['admin_secret_key'] = 'admin'
+    config['geonode'] = {}
+    config['geonode']['base_url'] = 'http://localhost'
+    config['geonode']['admin_username'] = 'admin'
+    config['geonode']['admin_password'] = 'admin'
+    config['geoserver'] = {}
+    config['geoserver']['base_url'] = 'http://localhost/geoserver'
+    config['geoserver']['admin_username'] = 'admin'
+    config['geoserver']['admin_password'] = 'geoserver'
     default_departments = (
         'ppd',
         'lsd',
@@ -113,3 +121,7 @@ def get_departments(config: ConfigParser) -> typing.List[str]:
         if section.endswith(f'{separator}department'):
             result.append(section.partition(separator)[0])
     return result
+
+
+def get_geoserver_db_username(department: str):
+    return f'{department}_geoserver'
