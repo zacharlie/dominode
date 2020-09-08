@@ -47,3 +47,12 @@ This package uses `pytest`_, so to run tests::
 
 .. _poetry: https://python-poetry.org/
 .. _pytest: https://docs.pytest.org/en/latest/
+
+
+======================
+Build the docker image
+======================
+
+In order to build the docker image::
+
+    docker build -t kartoza/dominode_bootstrapper:$(poetry version | cut -d " " -f 2) .
