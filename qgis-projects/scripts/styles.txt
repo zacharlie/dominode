@@ -1,0 +1,31 @@
+def processStyles(layer):
+    try:
+        print('Processing {0}'.format(str(layer.name())))
+        style_manager = layer.styleManager()
+        baseName = 'lsd_topomap-' + str(layer.name()).lower()
+        stylename_50000 = baseName + '-50000' + '_style'
+        stylename_10000 = baseName + '-10000' + '_style'
+        stylename_5000 = baseName + '-5000' + '_style'
+        stylename_2500 = baseName + '-2500' + '_style'
+        style_default = style_manager.style(stylename_50000)
+        if style_manager.style(stylename_10000).isValid():
+            style_manager.removeStyle(stylename_10000)
+        style_manager.addStyle(stylename_10000, style_50000)
+        if style_manager.style(stylename_5000).isValid():
+            style_manager.removeStyle(stylename_5000)
+        style_manager.addStyle(stylename_5000, style_50000)
+        if style_manager.style(stylename_2500).isValid():
+            style_manager.removeStyle(stylename_2500)
+        style_manager.addStyle(stylename_2500, style_50000)
+
+    except Exception as err:
+        print(err)
+
+# layers = QgsProject.instance().mapLayers().values()
+
+layerList = ['Airports','Buildings','Building Footprints','Community Services','Contours','District Boundaries','Estates','Marine Biomes','Nature Reserve','Parishes','Peaks','Ports','Protected Areas','Rivers','Roads','Shelter Locations','Sports Grounds','Heights','Tourist Attractions','Towns','Trails','Water Bodies','Beaches','Hospitals','Police Stations','Schools']
+
+for layer in layers:
+    if layer.name() in layerList:
+        print(layer.name())
+        processStyles(layer)

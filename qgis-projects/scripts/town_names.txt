@@ -1,0 +1,18 @@
+"""
+import csv
+outputCsv = 'P:\\DomiNode\\git\\dominode\\qgis-projects\\scripts\\town_names.csv'
+vector_layer = next((layer for layer in QgsProject.instance().mapLayersByName('Towns')), None)
+# vector_layer = iface.activeLayer()
+field_name = 'NAME'
+field_index = vector_layer.fields().indexOf(field_name)
+values = vector_layer.uniqueValues(field_index)
+values = list(values)
+with open(outputCsv, "w", newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(['NAME'])  # write file header
+    for value in values:
+        writer.writerow([str(value)])
+# print(values)
+# for value in values:
+#     print("'" + str(value).replace("'",'\\\'') + "',")
+"""

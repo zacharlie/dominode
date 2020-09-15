@@ -1,0 +1,29 @@
+def activateStyles(layers, theme):
+    for layer in layers:
+        try:
+            print('Processing {0}'.format(str(layer.name())))
+            style_manager = layer.styleManager()
+            baseName = str(layer.name().lower()).replace(" ", "-")
+            themestyle = 'lsd_topomap_' + baseName + '-' + theme + '_style'
+            styleList = style_manager.styles()
+            modifier = 0
+            for stylename in styleList:
+                
+                if themestyle == stylename:
+                    print('Processed {0}'.format(str(stylename)))
+                    style_manager.setCurrentStyle(stylename)
+                    modifier += 1
+            if modifier <= 0:
+                print('No matches for {0}'.format(str(layer.name())))
+                print('**********')
+
+        except Exception as err:
+            print(err)
+
+layers = QgsProject.instance().mapLayers().values()                
+# theme = 'tourism'
+theme = '50000'
+#theme = '10000'
+#theme = '5000'
+#theme = '2500'
+activateStyles(layers, theme)

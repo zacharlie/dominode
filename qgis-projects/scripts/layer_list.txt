@@ -1,0 +1,6 @@
+"""
+layers = [layer.name() for layer in QgsProject.instance().mapLayers().values()]
+# print(layers)
+for layer in layers:
+    print("'" + str(layer).replace("'",'\\\'') + "',")
+"""
