@@ -1,0 +1,21 @@
+<p>
+Hi {{ username }},
+</p>
+
+<p>
+Your task, Sync GeoServer has completed with the following output:
+</p>
+
+<p>
+<pre>
+{{ output }}
+</pre>
+</p>
+
+{% if error_message %}
+<p>The task has the following error:</p>
+
+<pre>
+{{ error_message }}
+</pre>
+{% endif %}
